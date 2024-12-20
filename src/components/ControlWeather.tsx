@@ -7,7 +7,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import { MyIndicatior } from "./LineChartWeather";
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 export interface OnChangeProp {
@@ -34,7 +34,6 @@ export default function ControlWeather(onIndicatorChange: OnChangeProp) {
 
         let idx = parseInt(event.target.value)
         // alert( idx );
-        setSelected( idx );
 
         {/* Modificación de la referencia descriptionRef */}
         if (descriptionRef.current !== null) {
@@ -45,7 +44,6 @@ export default function ControlWeather(onIndicatorChange: OnChangeProp) {
     };
 
     {/* Variable de estado y función de actualización */}
-    let [selected, setSelected] = useState(-1)
        
     {/* JSX */}
     return (
