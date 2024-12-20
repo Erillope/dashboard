@@ -1,19 +1,23 @@
 import Paper from '@mui/material/Paper';
 import { LineChart } from '@mui/x-charts/LineChart';
+import Item from '../interface/Item';
 
-const uData = [4000, 3000, 2000, 2780, 1890, 2390, 3490];
-const pData = [2400, 1398, 9800, 3908, 4800, 3800, 4300];
-const xLabels = [
-    'Page A',
-    'Page B',
-    'Page C',
-    'Page D',
-    'Page E',
-    'Page F',
-    'Page G',
-];
+export interface MyIndicatior {
+    day: string;
+    humidity: number;
+    temperature: number;
+    precipitation: number,
+  }
 
-export default function LineChartWeather() {
+export interface LineChartProp {
+  itemsIn: Item[];
+  indicator: keyof MyIndicatior
+}
+
+
+export default function LineChartWeather(props: LineChartProp) {
+    const xLabels = props.itemsIn.map(item => item.day).slice(0,props.itemsIn.length-1)
+    const pData = props.itemsIn.map(item => parseFloat(item[props.indicator].toString())).slice(0,props.itemsIn.length-1)
     return (
         <Paper
             sx={{
@@ -28,8 +32,7 @@ export default function LineChartWeather() {
                 width={400}
                 height={250}
                 series={[
-                    { data: pData, label: 'pv' },
-                    { data: uData, label: 'uv' },
+                    { data: pData, label: props.indicator },
                 ]}
                 xAxis={[{ scaleType: 'point', data: xLabels }]}
             />

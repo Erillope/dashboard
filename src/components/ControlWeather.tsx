@@ -6,20 +6,24 @@ import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-
+import { MyIndicatior } from "./LineChartWeather";
 import { useState, useRef } from 'react';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-   
-export default function ControlWeather() {
+
+export interface OnChangeProp {
+    onChange: (value: keyof MyIndicatior) => void
+  };
+
+export default function ControlWeather(onIndicatorChange: OnChangeProp) {
 
      {/* Constante de referencia a un elemento HTML */ }
      const descriptionRef = useRef<HTMLDivElement>(null);
 
     {/* Arreglo de objetos */}
     let items = [
-        {"name":"Precipitación", "description":"Cantidad de agua que cae sobre una superficie en un período específico."}, 
-        {"name": "Humedad", "description":"Cantidad de vapor de agua presente en el aire, generalmente expresada como un porcentaje."}, 
-        {"name":"Nubosidad", "description":"Grado de cobertura del cielo por nubes, afectando la visibilidad y la cantidad de luz solar recibida."}
+        {"name":"precipitation", "description":"Cantidad de agua que cae sobre una superficie en un período específico."}, 
+        {"name": "humidity", "description":"Cantidad de vapor de agua presente en el aire, generalmente expresada como un porcentaje."}, 
+        {"name":"temperature", "description":"Grado de temperatura."}
     ]
 
     {/* Arreglo de elementos JSX */}
@@ -35,6 +39,7 @@ export default function ControlWeather() {
         {/* Modificación de la referencia descriptionRef */}
         if (descriptionRef.current !== null) {
             descriptionRef.current.innerHTML = (idx >= 0) ? items[idx]["description"] : ""
+            onIndicatorChange.onChange(items[idx].name as keyof MyIndicatior)
         }
 
     };

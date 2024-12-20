@@ -6,10 +6,10 @@ import './App.css'
 import IndicatorWeather from './components/IndicatorWeather';
 import TableWeather from './components/TableWeather';
 import ControlWeather from './components/ControlWeather';
-import LineChartWeather from './components/LineChartWeather';
+import LineChartWeather, { MyIndicatior } from "./components/LineChartWeather";
 import Item from './interface/Item';
-
 import { useEffect, useState } from 'react';
+
 interface Indicator {
   title?: String;
   subtitle?: String;
@@ -20,10 +20,14 @@ function App() {
   //const [count, setCount] = useState(0)
 
   {/* Variable de estado y función de actualización */ }
+  let [indicator, setIndicator] = useState<keyof MyIndicatior>("humidity")
   let [indicators, setIndicators] = useState<Indicator[]>([])
   let [owm, setOWM] = useState(localStorage.getItem("openWeatherMap"))
   let [items, setItems] = useState<Item[]>([])
-
+  
+  let onChange = (indicator: keyof MyIndicatior) => {
+    setIndicator(indicator)
+  }
   {/* Hook: useEffect */ }
   useEffect(() => {
     
@@ -81,17 +85,55 @@ function App() {
         let name = xml.getElementsByTagName("name")[0].innerHTML || ""
         let times = xml.getElementsByTagName("time")
         let items: Item[] = new Array<Item>();
+
+        let now = new Date(times[0].getAttribute("from") || "").getDate();
+        let days = ["2024-12-"+now.toString()]
+        let humidities = []
+        let precipitations = []
+        let temperatures = []
+        let dayHumidities = []
+        let dayPrecipitation = []
+        let dayTemperatures = []
+        
         for (let i = 0; i <times.length; i++){
-          let precipitation = times[i].getElementsByTagName("precipitation")[0]
-          let humidity = times[i].getElementsByTagName("humidity")[0]
-          let clouds = times[i].getElementsByTagName("clouds")[0]
+          let day = times[i].getAttribute("from") || ""
+          let time_day = new Date(day).getDate()
+          
+          if (now != time_day){
+            humidities.push(dayHumidities.reduce((acumulador, numero) => acumulador + numero, 0)/dayHumidities.length)
+            precipitations.push(dayPrecipitation.reduce((acumulador, numero) => acumulador + numero, 0)/dayPrecipitation.length)
+            temperatures.push(dayTemperatures.reduce((acumulador, numero) => acumulador + numero, 0)/dayTemperatures.length)
+            dayPrecipitation = []
+            dayHumidities = []
+            dayHumidities.push(parseInt(times[i].getElementsByTagName("humidity")[0].getAttribute("value") || ""))
+            dayPrecipitation.push(parseFloat(times[i].getElementsByTagName("precipitation")[0].getAttribute("probability") || ""))
+            dayTemperatures.push(parseFloat(times[i].getElementsByTagName("temperature")[0].getAttribute("value") || ""))
+            now = time_day
+            days.push("2024-12-"+now.toString())
+          }
+          else{
+            dayHumidities.push(parseInt(times[i].getElementsByTagName("humidity")[0].getAttribute("value") || ""))
+            dayPrecipitation.push(parseFloat(times[i].getElementsByTagName("precipitation")[0].getAttribute("probability") || ""))
+            dayTemperatures.push(parseFloat(times[i].getElementsByTagName("temperature")[0].getAttribute("value") || ""))
+          }
+          
+          
+        }
+        days.push("Promedio")
+        humidities.push(dayHumidities.reduce((acumulador, numero) => acumulador + numero, 0)/dayHumidities.length)
+        humidities.push(humidities.reduce((acumulador, numero) => acumulador + numero, 0)/humidities.length)
+        precipitations.push(dayPrecipitation.reduce((acumulador, numero) => acumulador + numero, 0)/dayPrecipitation.length)
+        precipitations.push(precipitations.reduce((acumulador, numero) => acumulador + numero, 0)/precipitations.length)
+        temperatures.push(dayTemperatures.reduce((acumulador, numero) => acumulador + numero, 0)/dayTemperatures.length)
+        temperatures.push(temperatures.reduce((acumulador, numero) => acumulador + numero, 0)/temperatures.length)
+
+        for (let i = 0; i <days.length; i++){
           items.push({
-            "dateStart": times[i].getAttribute("from") || "",
-            "dateEnd": times[i].getAttribute("to") || "",
-            "precipitation": precipitation.getAttribute("probability") || "",
-            "humidity": humidity.getAttribute("value") || "" + humidity.getAttribute("unit") || "",
-            "clouds": clouds.getAttribute("value") || ""
-          })
+            "day": days[i],
+            "precipitation": precipitations[i].toFixed(2).toString(),
+            "humidity": humidities[i].toFixed(2).toString(),
+            "temperature": temperatures[i].toFixed(2).toString()
+        })
         }
         setItems(items)
         dataToIndicators.push({ "title": "Location", "subtitle": "City", "value": name })
@@ -159,7 +201,7 @@ function App() {
         {/* Grid Anidado */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, xl: 3 }}>
-            <ControlWeather />
+            <ControlWeather onChange={onChange}/>
           </Grid>
           <Grid size={{ xs: 12, xl: 9 }}>
           <TableWeather itemsIn={ items } />
@@ -170,7 +212,7 @@ function App() {
 
       {/* Gráfico */}
       <Grid size={{ xs: 12, xl: 4 }}>
-        <LineChartWeather />
+        <LineChartWeather itemsIn={items} indicator={indicator} />
       </Grid>
 
     </Grid>
